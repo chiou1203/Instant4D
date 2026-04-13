@@ -19,9 +19,34 @@ PY
 
 echo "==> Installing Python dependencies"
 python -m pip install -U pip setuptools wheel ninja
-python -m pip install -r requirement.txt
+python - <<'PY'
+from pathlib import Path
+
+source = Path("requirement.txt")
+target = Path("/tmp/instant4d_colab_requirements.txt")
+skip = {"torch-scatter"}
+
+lines = []
+for raw in source.read_text().splitlines():
+    package = raw.strip()
+    if not package or package.startswith("#"):
+        continue
+    if package.split("==", 1)[0].split(">=", 1)[0].split("<", 1)[0] in skip:
+        print(f"Skipping {package}: not used by the Colab smoke-test runtime and often unavailable for Colab's newest Torch/Python combo.")
+        continue
+    lines.append(package)
+
+target.write_text("\n".join(lines) + "\n")
+PY
+python -m pip install -r /tmp/instant4d_colab_requirements.txt
+python -m pip install open3d
 python -m pip install -r SLAM/mega-sam/UniDepth/requirements.txt
 python -m pip install -e SLAM/mega-sam/UniDepth
+
+if [ "${INSTALL_TORCH_SCATTER:-0}" = "1" ]; then
+  echo "==> Installing optional torch-scatter"
+  python -m pip install torch-scatter || echo "torch-scatter install failed; continuing because the runtime path does not import it."
+fi
 
 echo "==> Installing optional xformers"
 python -m pip install xformers || echo "xformers install failed; continuing because some Colab torch builds need a matching wheel."
