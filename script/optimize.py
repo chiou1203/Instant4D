@@ -27,6 +27,14 @@ try:
 except ImportError:
     TENSORBOARD_FOUND = False
 
+
+def render_evaluate(scene, saving_path, gaussians, pipe, background):
+    for method_name in ("render_evaluate_sora", "render_evaluate_dycheck"):
+        method = getattr(scene, method_name, None)
+        if method is not None:
+            return method(saving_path, gaussians, pipe, background)
+    raise AttributeError("Scene does not define a render_evaluate_* method")
+
 def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoint, debug_from,
              gaussian_dim, time_duration, num_pts, num_pts_ratio, rot_4d, force_sh_3d, batch_size):
     
@@ -253,8 +261,9 @@ def training(dataset, opt, pipe, testing_iterations, saving_iterations, checkpoi
                 if (iteration in saving_iterations):
                     print("\n[ITER {}] Saving Gaussians".format(iteration))
 
-                    saving_path = os.path.join(scene.model_path, f"iter_{iteration}")                    
-                    scene.render_evaluate_dycheck(saving_path, gaussians, pipe, background)
+                    scene.save(iteration)
+                    saving_path = os.path.join(scene.model_path, f"iter_{iteration}")
+                    render_evaluate(scene, saving_path, gaussians, pipe, background)
                     # scene.render_train(saving_path, gaussians, pipe, background)
                     
                     
