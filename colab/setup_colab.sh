@@ -40,7 +40,27 @@ target.write_text("\n".join(lines) + "\n")
 PY
 python -m pip install -r /tmp/instant4d_colab_requirements.txt
 python -m pip install open3d
-python -m pip install -r SLAM/mega-sam/UniDepth/requirements.txt
+python - <<'PY'
+from pathlib import Path
+
+source = Path("SLAM/mega-sam/UniDepth/requirements.txt")
+target = Path("/tmp/unidepth_colab_requirements.txt")
+skip = {"torch", "torchvision", "torchaudio", "triton", "xformers"}
+
+lines = []
+for raw in source.read_text().splitlines():
+    package = raw.strip()
+    if not package or package.startswith("#"):
+        continue
+    normalized = package.split("==", 1)[0].split(">=", 1)[0].split("<", 1)[0]
+    if normalized in skip:
+        print(f"Skipping UniDepth requirement {package}: Colab already provides a compatible Torch stack or the package is optional for this smoke test.")
+        continue
+    lines.append(package)
+
+target.write_text("\n".join(lines) + "\n")
+PY
+python -m pip install -r /tmp/unidepth_colab_requirements.txt
 python -m pip install -e SLAM/mega-sam/UniDepth
 
 if [ "${INSTALL_TORCH_SCATTER:-0}" = "1" ]; then
