@@ -24,6 +24,7 @@ mkdir -p "$WORK_DIR" "$PRUNE_DIR" "$MODEL_DIR"
 
 echo "==> Applying Colab runtime patches"
 python colab/patch_unidepth_colab.py
+python colab/patch_torch_scatter_colab.py
 
 echo "==> Running Mega-SAM preprocessing for $SCENE_NAME"
 pushd SLAM/mega-sam >/dev/null
