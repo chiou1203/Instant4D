@@ -96,8 +96,8 @@ For the native workflow, use:
 cd /content
 git clone --recursive --branch codex-colab-a100-workflow https://github.com/chiou1203/Instant4D.git /content/Instant4D-native
 cd /content/Instant4D-native
-REPO_ROOT=/content/Instant4D-native ENV_NAME=instant4d310 bash colab/setup_native_colab.sh
-REPO_ROOT=/content/Instant4D-native SCENE_NAME=panda DATA_DIR=/content/Instant4D-native/example CONFIG_PATH=/content/Instant4D-native/configs/sora/panda.yaml MODEL_DIR=/content/Instant4D-native/output/native/panda /content/micromamba-bin/micromamba run -n instant4d310 bash colab/run_native_colab.sh
+REPO_ROOT=/content/Instant4D-native ENV_NAME=instant4d310 MAMBA_ROOT_PREFIX=/content/micromamba bash colab/setup_native_colab.sh
+MAMBA_ROOT_PREFIX=/content/micromamba REPO_ROOT=/content/Instant4D-native SCENE_NAME=panda DATA_DIR=/content/Instant4D-native/example CONFIG_PATH=/content/Instant4D-native/configs/sora/panda.yaml MODEL_DIR=/content/Instant4D-native/output/native/panda /content/micromamba-bin/micromamba run -n instant4d310 bash colab/run_native_colab.sh
 ```
 
 ## Notes

@@ -142,4 +142,4 @@ echo "==> Verifying native dependency stack after compiling extensions"
 run_env python colab/verify_native_deps.py
 
 echo "==> Native Colab setup complete"
-echo "Use: $MICROMAMBA_BIN run -n $ENV_NAME bash colab/run_native_colab.sh"
+echo "Use: MAMBA_ROOT_PREFIX=$MAMBA_ROOT_PREFIX $MICROMAMBA_BIN run -n $ENV_NAME bash colab/run_native_colab.sh"
