@@ -22,6 +22,9 @@ fi
 
 mkdir -p "$WORK_DIR" "$PRUNE_DIR" "$MODEL_DIR"
 
+echo "==> Applying Colab runtime patches"
+python colab/patch_unidepth_colab.py
+
 echo "==> Running Mega-SAM preprocessing for $SCENE_NAME"
 pushd SLAM/mega-sam >/dev/null
 export PYTHONPATH="${PYTHONPATH:-}:$(pwd)/UniDepth"
@@ -73,4 +76,3 @@ python colab/optimize_colab.py \
   --model_path "$MODEL_DIR"
 
 echo "==> Done. Outputs: $MODEL_DIR"
-

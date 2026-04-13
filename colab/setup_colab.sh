@@ -103,6 +103,7 @@ fi
 
 echo "==> Applying torch > 2.7 CUDA extension compatibility patch if needed"
 python colab/patch_megasam_colab.py
+python colab/patch_unidepth_colab.py
 
 echo "==> Building Mega-SAM CUDA extensions"
 pushd SLAM/mega-sam/base >/dev/null
