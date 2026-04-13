@@ -9,6 +9,7 @@ REPLACEMENTS = [
     (re.compile(r"\.type\s*\(\s*\)\s*\.scalarType\s*\(\s*\)"), ".scalar_type()"),
     (re.compile(r"\.type\s*\(\s*\)\s*\.device\s*\(\s*\)"), ".device()"),
     (re.compile(r"\.type\s*\(\s*\)\s*\.is_cuda\s*\(\s*\)"), ".is_cuda()"),
+    (re.compile(r"\.device\s*\(\s*\)\s*\.scalar_type\s*\(\s*\)"), ".device().type()"),
     (re.compile(r"\.scalar_type\s*\(\s*\)\s*\.scalarType\s*\(\s*\)"), ".scalar_type()"),
     (re.compile(r"\.scalar_type\s*\(\s*\)\s*\.device\s*\(\s*\)"), ".device()"),
     (re.compile(r"\.scalar_type\s*\(\s*\)\s*\.is_cuda\s*\(\s*\)"), ".is_cuda()"),
@@ -18,6 +19,7 @@ BAD_PATTERNS = [
     re.compile(r"\.scalar_type\s*\(\s*\)\s*\.device\s*\("),
     re.compile(r"\.scalar_type\s*\(\s*\)\s*\.is_cuda\s*\("),
     re.compile(r"\.scalar_type\s*\(\s*\)\s*\.scalarType\s*\("),
+    re.compile(r"\.device\s*\(\s*\)\s*\.scalar_type\s*\("),
 ]
 
 
@@ -71,4 +73,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
