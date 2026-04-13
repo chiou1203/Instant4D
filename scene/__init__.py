@@ -308,8 +308,18 @@ class Scene:
                 height, width = video_frames[0].shape[:2]
                 video_path = os.path.join(path, "test", f"novel_view_{variant['name']}.mp4")
                 
-                fourcc = cv2.VideoWriter_fourcc(*'avc1')
-                out = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+                out = None
+                for codec in ("avc1", "mp4v"):
+                    fourcc = cv2.VideoWriter_fourcc(*codec)
+                    candidate = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
+                    if candidate.isOpened():
+                        out = candidate
+                        if codec != "avc1":
+                            print(f"Using {codec} video codec because avc1 is unavailable.")
+                        break
+                    candidate.release()
+                if out is None:
+                    raise RuntimeError(f"Could not open VideoWriter for {video_path}")
                 
                 for frame in video_frames:
                     # Convert RGB to BGR for OpenCV
