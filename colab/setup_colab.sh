@@ -35,7 +35,7 @@ for raw in source.read_text().splitlines():
     if not package or package.startswith("#"):
         continue
     if package.split("==", 1)[0].split(">=", 1)[0].split("<", 1)[0] in skip:
-        print(f"Skipping {package}: not used by the Colab smoke-test runtime and often unavailable for Colab's newest Torch/Python combo.")
+        print(f"Skipping {package}: Colab's default Python/Torch stack often lacks a matching wheel; the runtime applies a compatibility fallback.")
         continue
     lines.append(package)
 
@@ -57,7 +57,7 @@ for raw in source.read_text().splitlines():
         continue
     normalized = package.split("==", 1)[0].split(">=", 1)[0].split("<", 1)[0]
     if normalized in skip:
-        print(f"Skipping UniDepth requirement {package}: Colab already provides a compatible Torch stack or the package is optional for this smoke test.")
+        print(f"Skipping UniDepth requirement {package}: Colab already provides Torch, or the runtime applies a compatibility fallback for this package.")
         continue
     lines.append(package)
 
@@ -71,14 +71,14 @@ python -m pip install --no-deps -e SLAM/mega-sam/UniDepth
 
 if [ "${INSTALL_TORCH_SCATTER:-0}" = "1" ]; then
   echo "==> Installing optional torch-scatter"
-  python -m pip install torch-scatter || echo "torch-scatter install failed; continuing because the runtime path does not import it."
+  python -m pip install torch-scatter || echo "torch-scatter install failed; using the Colab compatibility fallback instead."
 fi
 
 if [ "${INSTALL_XFORMERS:-0}" = "1" ]; then
   echo "==> Installing optional xformers"
   python -m pip install xformers || echo "xformers install failed; continuing because some Colab torch builds need a matching wheel."
 else
-  echo "==> Skipping optional xformers. Set INSTALL_XFORMERS=1 if UniDepth later requires it."
+  echo "==> Skipping optional xformers. Set INSTALL_XFORMERS=1 on a compatible Torch/Python stack for a native xformers run."
 fi
 
 echo "==> Downloading external checkpoints when missing"

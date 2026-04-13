@@ -68,7 +68,8 @@ python colab/prune_colab.py \
   --image_dir "$DATA_DIR/$SCENE_NAME" \
   --droid_dir "$REPO_ROOT/SLAM/mega-sam/outputs_cvd" \
   --motion_dir "$REPO_ROOT/SLAM/mega-sam/reconstructions" \
-  --save_dir "$PRUNE_DIR"
+  --save_dir "$PRUNE_DIR" \
+  --config "$CONFIG_PATH"
 
 echo "==> 4DGS optimization"
 python colab/optimize_colab.py \

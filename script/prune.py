@@ -107,9 +107,8 @@ def process_data(depth, color, motion_prob, intrinsic, cam_c2w):
     xyz = back_project(depth, intrinsic, cam_c2w).reshape(-1, 3)
     rgb = color.reshape(-1, 3).astype(np.float32)/255.0
     
-    time_stamp = np.repeat(np.arange(B).astype(np.float32)/B*3,
-                           xyz.shape[0]//B)
-    time_stamp = time_stamp.reshape(-1, 1)
+    time_stamp = np.repeat(np.arange(B).astype(np.float32) / B * 3,
+                           xyz.shape[0] // B).astype(np.float32)
     
     prob_motion = motion_prob
 
@@ -242,7 +241,7 @@ def voxel_filter(droid_path, motion_path, save_dir, scene, use_mask=False):
                                                                                          pcd_dynamic.xyz,
                                                                                          pcd_dynamic.rgb,
                                                                                          pcd_dynamic.prob_motion,
-                                                                                         pcd_dynamic.time_stamp)
+                                                                                         pcd_dynamic.time_stamp.astype(np.float32).squeeze())
     
     
 

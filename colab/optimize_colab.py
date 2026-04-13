@@ -72,6 +72,10 @@ def main() -> None:
         args.source_path = cli_source_path
     if cli_model_path:
         args.model_path = cli_model_path
+    if args.iterations not in args.save_iterations:
+        args.save_iterations.append(args.iterations)
+    if args.iterations not in args.test_iterations:
+        args.test_iterations.append(args.iterations)
 
     args.source_path = os.path.abspath(args.source_path)
     args.model_path = os.path.abspath(args.model_path)

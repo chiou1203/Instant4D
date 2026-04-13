@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -38,7 +39,24 @@ def normalize_images(image_dir: Path, output_dir: Path) -> tuple[int, int]:
     return width, height
 
 
-def rewrite_transforms(droid_path: Path, image_dir: Path, output_scene_dir: Path) -> None:
+def load_time_duration(config_path: Path | None) -> tuple[float, float]:
+    if config_path is None:
+        return 0.0, 3.0
+
+    text = config_path.read_text()
+    match = re.search(r"(?m)^\s*time_duration:\s*\[\s*([-+0-9.eE]+)\s*,\s*([-+0-9.eE]+)\s*\]", text)
+    if not match:
+        raise ValueError(f"Could not read time_duration from {config_path}")
+    return float(match.group(1)), float(match.group(2))
+
+
+def rewrite_transforms(
+    droid_path: Path,
+    image_dir: Path,
+    output_scene_dir: Path,
+    time_start: float,
+    time_end: float,
+) -> None:
     images_dir = output_scene_dir / "images"
     width, height = normalize_images(image_dir, images_dir)
 
@@ -51,11 +69,12 @@ def rewrite_transforms(droid_path: Path, image_dir: Path, output_scene_dir: Path
     frames = []
     denom = max(frame_count - 1, 1)
     for idx in range(frame_count):
+        timestamp = time_start + (idx / denom) * (time_end - time_start)
         frames.append(
             {
                 "file_path": f"images/{idx + 1:05d}",
                 "transform_matrix": cam_c2w[idx].tolist(),
-                "time": idx / denom,
+                "time": timestamp,
             }
         )
 
@@ -74,7 +93,7 @@ def rewrite_transforms(droid_path: Path, image_dir: Path, output_scene_dir: Path
             json.dump(transforms, f, indent=2)
 
 
-def normalize_filtered_cvd_times(output_scene_dir: Path) -> None:
+def validate_filtered_cvd_times(output_scene_dir: Path, time_start: float, time_end: float) -> None:
     filtered_path = output_scene_dir / "filtered_cvd.npz"
     data = dict(np.load(filtered_path))
     time_stamp = data.get("time_stamp")
@@ -82,15 +101,31 @@ def normalize_filtered_cvd_times(output_scene_dir: Path) -> None:
     if time_stamp is None:
         return
 
-    max_time = float(np.max(time_stamp)) if time_stamp.size else 0.0
-    if max_time <= 1.0:
-        return
+    changed = False
+    invalid_time = ~np.isfinite(time_stamp) | (time_stamp < time_start) | (time_stamp > time_end)
+    if np.any(invalid_time):
+        midpoint = (time_start + time_end) / 2.0
+        print(
+            f"WARNING: correcting {int(np.count_nonzero(invalid_time))} filtered_cvd.npz "
+            f"time values outside [{time_start}, {time_end}]"
+        )
+        time_stamp = np.nan_to_num(time_stamp, nan=midpoint, posinf=time_end, neginf=time_start)
+        time_stamp = np.clip(time_stamp, time_start, time_end)
+        data["time_stamp"] = time_stamp
+        changed = True
 
-    data["time_stamp"] = time_stamp / max_time
     if scale_time is not None:
-        data["scale_time"] = scale_time / max_time
-    np.savez(filtered_path, **data)
-    print(f"Normalized filtered_cvd.npz time fields by {max_time:.6f}")
+        min_scale = max((time_end - time_start) / 10_000.0, 1e-6)
+        invalid_scale = ~np.isfinite(scale_time) | (scale_time <= 0)
+        if np.any(invalid_scale):
+            print(f"WARNING: correcting {int(np.count_nonzero(invalid_scale))} invalid scale_time values")
+            scale_time = np.nan_to_num(scale_time, nan=min_scale, posinf=(time_end - time_start), neginf=min_scale)
+            scale_time = np.clip(scale_time, min_scale, time_end - time_start)
+            data["scale_time"] = scale_time
+            changed = True
+
+    if changed:
+        np.savez(filtered_path, **data)
 
 
 def main() -> None:
@@ -100,6 +135,7 @@ def main() -> None:
     parser.add_argument("--droid_dir", required=True, type=Path)
     parser.add_argument("--motion_dir", required=True, type=Path)
     parser.add_argument("--save_dir", required=True, type=Path)
+    parser.add_argument("--config", type=Path, default=None)
     parser.add_argument("--clean", action="store_true", help="Remove the existing output scene folder before writing")
     args = parser.parse_args()
 
@@ -116,9 +152,10 @@ def main() -> None:
     if not motion_path.exists():
         raise FileNotFoundError(f"Missing Mega-SAM motion probabilities: {motion_path}")
 
+    time_start, time_end = load_time_duration(args.config)
     voxel_filter(str(droid_path), str(motion_path), str(output_scene_dir), args.scene_name, use_mask=False)
-    normalize_filtered_cvd_times(output_scene_dir)
-    rewrite_transforms(droid_path, args.image_dir, output_scene_dir)
+    validate_filtered_cvd_times(output_scene_dir, time_start, time_end)
+    rewrite_transforms(droid_path, args.image_dir, output_scene_dir, time_start, time_end)
     print(f"Wrote Colab-ready Mega-SAM dataset to {output_scene_dir}")
 
 
