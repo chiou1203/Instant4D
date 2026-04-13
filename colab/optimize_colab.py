@@ -2,11 +2,16 @@ import argparse
 import os
 import random
 import sys
+from pathlib import Path
 
 import numpy as np
 import torch
 from omegaconf import OmegaConf
 from omegaconf.dictconfig import DictConfig
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from script.optimize import training
@@ -106,4 +111,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
