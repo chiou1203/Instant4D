@@ -110,8 +110,8 @@ python setup.py install
 popd >/dev/null
 
 echo "==> Building Gaussian Splatting helper extensions"
-python -m pip install ./submodule/fussed-ssim
-python -m pip install ./submodule/simple-knn
+python -m pip install --no-build-isolation ./submodule/fussed-ssim
+python -m pip install --no-build-isolation ./submodule/simple-knn
 pushd submodule/pointops2 >/dev/null
 python setup.py install
 popd >/dev/null
