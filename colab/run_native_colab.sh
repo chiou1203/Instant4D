@@ -9,9 +9,13 @@ PRUNE_DIR="${PRUNE_DIR:-$REPO_ROOT/SLAM/voxel_filter/output/native}"
 MODEL_DIR="${MODEL_DIR:-$REPO_ROOT/output/native/$SCENE_NAME}"
 CONFIG_PATH="${CONFIG_PATH:-$REPO_ROOT/configs/sora/panda.yaml}"
 CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0}"
+UNIDEPTH_MODEL_PATH="${UNIDEPTH_MODEL_PATH:-$REPO_ROOT/checkpoints/hf/unidepth-v2-vitl14}"
+UNIDEPTH_MODEL_REVISION="${UNIDEPTH_MODEL_REVISION:-1d0d3c52f60b5164629d279bb9a7546458e6dcc4}"
 
 export CUDA_VISIBLE_DEVICES
 export PYTHONUNBUFFERED=1
+export UNIDEPTH_MODEL_PATH
+export UNIDEPTH_MODEL_REVISION
 
 cd "$REPO_ROOT"
 
@@ -29,6 +33,10 @@ mkdir -p "$WORK_DIR" "$PRUNE_DIR" "$MODEL_DIR"
 
 echo "==> Applying Mega-SAM Torch API compatibility patch"
 python colab/patch_megasam_colab.py
+python colab/patch_unidepth_native_colab.py
+
+echo "==> Ensuring UniDepth model snapshot is available"
+python colab/prefetch_unidepth_native.py
 
 echo "==> Running Mega-SAM preprocessing for $SCENE_NAME"
 pushd SLAM/mega-sam >/dev/null

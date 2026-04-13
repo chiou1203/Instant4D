@@ -5,10 +5,14 @@ REPO_ROOT="${REPO_ROOT:-/content/Instant4D}"
 ENV_NAME="${ENV_NAME:-instant4d310}"
 MAMBA_ROOT_PREFIX="${MAMBA_ROOT_PREFIX:-/content/micromamba}"
 MICROMAMBA_BIN="${MICROMAMBA_BIN:-/content/micromamba-bin/micromamba}"
+UNIDEPTH_MODEL_PATH="${UNIDEPTH_MODEL_PATH:-$REPO_ROOT/checkpoints/hf/unidepth-v2-vitl14}"
+UNIDEPTH_MODEL_REVISION="${UNIDEPTH_MODEL_REVISION:-1d0d3c52f60b5164629d279bb9a7546458e6dcc4}"
 TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-8.0;9.0}"
 CUDA_HOME="${CUDA_HOME:-/usr/local/cuda}"
 
 export MAMBA_ROOT_PREFIX
+export UNIDEPTH_MODEL_PATH
+export UNIDEPTH_MODEL_REVISION
 export TORCH_CUDA_ARCH_LIST
 export CUDA_HOME
 export FORCE_CUDA=1
@@ -122,9 +126,13 @@ fi
 
 echo "==> Applying Mega-SAM Torch API compatibility patch"
 run_env python colab/patch_megasam_colab.py
+run_env python colab/patch_unidepth_native_colab.py
 
 echo "==> Verifying native dependency stack before compiling extensions"
 run_env python colab/verify_native_deps.py
+
+echo "==> Prefetching UniDepth model snapshot"
+run_env python colab/prefetch_unidepth_native.py
 
 echo "==> Building Mega-SAM CUDA extensions"
 pushd SLAM/mega-sam/base >/dev/null

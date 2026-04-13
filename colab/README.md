@@ -24,6 +24,8 @@ torch-scatter from https://data.pyg.org/whl/torch-2.2.0+cu121.html
 
 The native notebook clones into `/content/Instant4D-native` so it does not inherit generated fallback modules from the quick-test run. It still applies `patch_megasam_colab.py` before compiling Mega-SAM CUDA extensions because that patch fixes Torch C++ API compatibility in source code. It does not apply the UniDepth xformers fallback or the torch-scatter fallback.
 
+The native setup prefetches the UniDepth Hugging Face snapshot to `checkpoints/hf/unidepth-v2-vitl14` and patches Mega-SAM's UniDepth demo to load from that local path. This avoids silent hangs inside `UniDepthV2.from_pretrained(...)` and makes the model loading step explicit in the log.
+
 If the native run still reports `Loss=nan` or `Lssim=nan`, treat the result as not evaluation-ready and inspect the loss numerics before making quality claims.
 
 ## Drive Layout
@@ -97,7 +99,7 @@ cd /content
 git clone --recursive --branch codex-colab-a100-workflow https://github.com/chiou1203/Instant4D.git /content/Instant4D-native
 cd /content/Instant4D-native
 REPO_ROOT=/content/Instant4D-native ENV_NAME=instant4d310 MAMBA_ROOT_PREFIX=/content/micromamba bash colab/setup_native_colab.sh
-MAMBA_ROOT_PREFIX=/content/micromamba REPO_ROOT=/content/Instant4D-native SCENE_NAME=panda DATA_DIR=/content/Instant4D-native/example CONFIG_PATH=/content/Instant4D-native/configs/sora/panda.yaml MODEL_DIR=/content/Instant4D-native/output/native/panda /content/micromamba-bin/micromamba run -n instant4d310 bash colab/run_native_colab.sh
+MAMBA_ROOT_PREFIX=/content/micromamba REPO_ROOT=/content/Instant4D-native SCENE_NAME=panda DATA_DIR=/content/Instant4D-native/example CONFIG_PATH=/content/Instant4D-native/configs/sora/panda.yaml MODEL_DIR=/content/Instant4D-native/output/native/panda UNIDEPTH_MODEL_PATH=/content/Instant4D-native/checkpoints/hf/unidepth-v2-vitl14 /content/micromamba-bin/micromamba run -n instant4d310 bash colab/run_native_colab.sh
 ```
 
 ## Notes
