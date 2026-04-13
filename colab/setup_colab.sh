@@ -61,7 +61,10 @@ for raw in source.read_text().splitlines():
 target.write_text("\n".join(lines) + "\n")
 PY
 python -m pip install -r /tmp/unidepth_colab_requirements.txt
-python -m pip install -e SLAM/mega-sam/UniDepth
+# UniDepth's pyproject dynamically reads its original requirements.txt, which
+# pins old Torch/Triton/xformers builds. Dependencies were installed from the
+# filtered Colab requirements file above, so keep the editable install no-deps.
+python -m pip install --no-deps -e SLAM/mega-sam/UniDepth
 
 if [ "${INSTALL_TORCH_SCATTER:-0}" = "1" ]; then
   echo "==> Installing optional torch-scatter"
