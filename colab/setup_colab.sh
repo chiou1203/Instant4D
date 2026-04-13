@@ -102,26 +102,7 @@ if [ ! -f SLAM/mega-sam/checkpoints/megasam_final.pth ]; then
 fi
 
 echo "==> Applying torch > 2.7 CUDA extension compatibility patch if needed"
-python - <<'PY'
-from pathlib import Path
-
-for path in Path("SLAM/mega-sam/base").rglob("*"):
-    if path.suffix not in {".cu", ".cpp", ".h", ".hpp"}:
-        continue
-    if not path.exists():
-        continue
-    text = path.read_text()
-    patched = text
-    patched = patched.replace(".type().scalarType()", ".scalar_type()")
-    patched = patched.replace(".type().is_cuda()", ".is_cuda()")
-    patched = patched.replace(".type().device()", ".device()")
-    patched = patched.replace(".scalar_type().scalarType()", ".scalar_type()")
-    patched = patched.replace(".scalar_type().is_cuda()", ".is_cuda()")
-    patched = patched.replace(".scalar_type().device()", ".device()")
-    if patched != text:
-        path.write_text(patched)
-        print("patched", path)
-PY
+python colab/patch_megasam_colab.py
 
 echo "==> Building Mega-SAM CUDA extensions"
 pushd SLAM/mega-sam/base >/dev/null
