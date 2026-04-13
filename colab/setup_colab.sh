@@ -19,6 +19,9 @@ PY
 
 echo "==> Installing Python dependencies"
 python -m pip install -U pip setuptools wheel ninja
+cat > /tmp/instant4d_colab_constraints.txt <<'EOF'
+numpy<2.0
+EOF
 python - <<'PY'
 from pathlib import Path
 
@@ -38,8 +41,8 @@ for raw in source.read_text().splitlines():
 
 target.write_text("\n".join(lines) + "\n")
 PY
-python -m pip install -r /tmp/instant4d_colab_requirements.txt
-python -m pip install open3d
+python -m pip install -c /tmp/instant4d_colab_constraints.txt -r /tmp/instant4d_colab_requirements.txt
+python -m pip install -c /tmp/instant4d_colab_constraints.txt open3d
 python - <<'PY'
 from pathlib import Path
 
@@ -60,7 +63,7 @@ for raw in source.read_text().splitlines():
 
 target.write_text("\n".join(lines) + "\n")
 PY
-python -m pip install -r /tmp/unidepth_colab_requirements.txt
+python -m pip install -c /tmp/instant4d_colab_constraints.txt -r /tmp/unidepth_colab_requirements.txt
 # UniDepth's pyproject dynamically reads its original requirements.txt, which
 # pins old Torch/Triton/xformers builds. Dependencies were installed from the
 # filtered Colab requirements file above, so keep the editable install no-deps.
@@ -108,7 +111,13 @@ for path in Path("SLAM/mega-sam/base").rglob("*"):
     if not path.exists():
         continue
     text = path.read_text()
-    patched = text.replace(".type()", ".scalar_type()")
+    patched = text
+    patched = patched.replace(".type().scalarType()", ".scalar_type()")
+    patched = patched.replace(".type().is_cuda()", ".is_cuda()")
+    patched = patched.replace(".type().device()", ".device()")
+    patched = patched.replace(".scalar_type().scalarType()", ".scalar_type()")
+    patched = patched.replace(".scalar_type().is_cuda()", ".is_cuda()")
+    patched = patched.replace(".scalar_type().device()", ".device()")
     if patched != text:
         path.write_text(patched)
         print("patched", path)
