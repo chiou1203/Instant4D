@@ -10,8 +10,9 @@ from omegaconf import OmegaConf
 from omegaconf.dictconfig import DictConfig
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+for path in (REPO_ROOT / "submodule", REPO_ROOT):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 from arguments import ModelParams, OptimizationParams, PipelineParams
 from script.optimize import training
