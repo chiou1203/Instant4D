@@ -6,7 +6,7 @@ TARGETS = (
     Path("SLAM/mega-sam/base/droid_slam/torch_scatter.py"),
 )
 
-MODULE = '''"""Small Colab fallback for the torch_scatter.scatter_sum API used by Mega-SAM.
+MODULE = '''"""Small Colab fallback for torch_scatter APIs used by Mega-SAM.
 
 This is intended for smoke testing on Colab runtimes where torch-scatter wheels
 are unavailable for the preinstalled Python/Torch/CUDA stack.
@@ -50,6 +50,29 @@ def scatter_sum(
         out = src.new_zeros(size)
 
     return out.scatter_add_(dim, expanded_index, src)
+
+
+def scatter_mean(
+    src: torch.Tensor,
+    index: torch.Tensor,
+    dim: int = -1,
+    out: torch.Tensor | None = None,
+    dim_size: int | None = None,
+) -> torch.Tensor:
+    if dim < 0:
+        dim = src.dim() + dim
+
+    if out is not None and dim_size is None:
+        dim_size = out.shape[dim]
+    summed = scatter_sum(src, index, dim=dim, out=None, dim_size=dim_size)
+    expanded_index = _broadcast_index(index, src, dim)
+    counts = scatter_sum(torch.ones_like(src), expanded_index, dim=dim, dim_size=summed.shape[dim])
+    result = summed / counts.clamp_min(1)
+
+    if out is not None:
+        out.copy_(result)
+        return out
+    return result
 '''
 
 
