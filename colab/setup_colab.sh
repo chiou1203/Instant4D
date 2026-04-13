@@ -48,8 +48,12 @@ if [ "${INSTALL_TORCH_SCATTER:-0}" = "1" ]; then
   python -m pip install torch-scatter || echo "torch-scatter install failed; continuing because the runtime path does not import it."
 fi
 
-echo "==> Installing optional xformers"
-python -m pip install xformers || echo "xformers install failed; continuing because some Colab torch builds need a matching wheel."
+if [ "${INSTALL_XFORMERS:-0}" = "1" ]; then
+  echo "==> Installing optional xformers"
+  python -m pip install xformers || echo "xformers install failed; continuing because some Colab torch builds need a matching wheel."
+else
+  echo "==> Skipping optional xformers. Set INSTALL_XFORMERS=1 if UniDepth later requires it."
+fi
 
 echo "==> Downloading external checkpoints when missing"
 mkdir -p SLAM/mega-sam/Depth-Anything/checkpoints
